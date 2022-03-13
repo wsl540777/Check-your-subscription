@@ -1,9 +1,15 @@
 package io.qyi.e5.outlook_log.entity;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.influxdb.annotations.Column;
+import com.influxdb.annotations.Measurement;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -17,42 +23,45 @@ import lombok.experimental.Accessors;
  * @since 2020-03-03
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class OutlookLog implements Serializable {
+@Measurement(name = "OutlookLog")
+public class OutlookLog {
 
     private static final long serialVersionUID = 1L;
-    @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
-
     /**
      * github_id
      */
-    private Integer githubId;
+    @Column(tag = true)
+    private String githubId;
 
     /**
      * outlook_id
      */
-    private Integer outlookId;
+    @Column(tag = true)
+    private String outlookId;
 
     /**
      * 调用时间
      */
-    private Integer callTime;
+    @Column
+    private long callTime;
 
     /**
      * 调用结果
      */
-    private Integer result;
+    @Column
+    private Number result;
 
     /**
      * 如果有错误原因则记录
      */
+    @Column
     private String msg;
 
     /**
      * 原始错误消息
      */
+    @Column
     private String originalMsg;
 
 
