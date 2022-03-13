@@ -1,7 +1,7 @@
 package io.qyi.e5.outlook_log.controller;
 
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.influxdb.client.InfluxDBClient;
 import io.qyi.e5.bean.result.Result;
 import io.qyi.e5.config.security.UsernamePasswordAuthenticationToken;
 import io.qyi.e5.outlook.service.IOutlookService;
@@ -9,8 +9,6 @@ import io.qyi.e5.outlook_log.bena.LogVo;
 import io.qyi.e5.outlook_log.entity.OutlookLog;
 import io.qyi.e5.outlook_log.service.IOutlookLogService;
 import io.qyi.e5.util.ResultUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,7 +43,15 @@ public class OutlookLogController {
     @Autowired
     IOutlookService outlookService;
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Autowired
+    InfluxDBClient influxDBClient;
+
+    @Value("${spring.influx.org:''}")
+    private String org;
+
+    @Value("${spring.influx.bucket:''}")
+    private String bucket;
+
 
     @Value("${page.size}")
     private int pageSize;
@@ -55,19 +61,8 @@ public class OutlookLogController {
     public Result findLog(@RequestParam int outlookId){
         UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         int github_id = authentication.getGithub_id();
-
-        QueryWrapper<OutlookLog> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("github_id", github_id).eq("outlook_id", outlookId).orderByAsc("call_time");
-        List<OutlookLog> list = outlookLogService.list(queryWrapper);
-        Iterator<OutlookLog> iterator = list.iterator();
-        List<LogVo> logVo = new LinkedList<>();
-        while (iterator.hasNext()) {
-            OutlookLog next = iterator.next();
-            LogVo vo = new LogVo();
-            BeanUtils.copyProperties(next,vo);
-            logVo.add(vo);
-        }
-        return ResultUtil.success(logVo);
+        List<OutlookLog> list = outlookLogService.findAllList(github_id, outlookId);
+        return ResultUtil.success(list);
     }
 
 }
